@@ -1,9 +1,12 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3, TrendingUp, Users, Building } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, Building, Award, TrendingDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+
   const stats = [
     {
       title: 'Total Emissions',
@@ -35,12 +38,62 @@ const Dashboard = () => {
     },
   ];
 
+  const topSuppliers = [
+    {
+      name: 'EcoTech Solutions',
+      reduction: '35%',
+      emissions: '450 tCO2e',
+      rank: 1,
+      trend: 'up'
+    },
+    {
+      name: 'Green Manufacturing Co.',
+      reduction: '28%',
+      emissions: '680 tCO2e',
+      rank: 2,
+      trend: 'up'
+    },
+    {
+      name: 'Sustainable Logistics Ltd',
+      reduction: '22%',
+      emissions: '820 tCO2e',
+      rank: 3,
+      trend: 'stable'
+    },
+    {
+      name: 'Clean Energy Partners',
+      reduction: '18%',
+      emissions: '1,200 tCO2e',
+      rank: 4,
+      trend: 'up'
+    },
+    {
+      name: 'Efficient Transport Inc',
+      reduction: '15%',
+      emissions: '1,450 tCO2e',
+      rank: 5,
+      trend: 'down'
+    },
+  ];
+
+  const handleLogout = () => {
+    navigate('/login');
+  };
+
   return (
     <div className="min-h-screen bg-slate-800 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Scope 3 Emissions Dashboard</h1>
-          <p className="text-slate-300">Monitor and analyze your supply chain emissions</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">Scope 3 Emissions Dashboard</h1>
+            <p className="text-slate-300">Monitor and analyze your supply chain emissions</p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="bg-slate-600 hover:bg-slate-500 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Logout
+          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -65,8 +118,8 @@ const Dashboard = () => {
           })}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="bg-slate-700 border-slate-600">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <Card className="lg:col-span-2 bg-slate-700 border-slate-600">
             <CardHeader>
               <CardTitle className="text-white">Emission Categories</CardTitle>
               <CardDescription className="text-slate-300">
@@ -103,22 +156,59 @@ const Dashboard = () => {
 
           <Card className="bg-slate-700 border-slate-600">
             <CardHeader>
+              <div className="flex items-center space-x-2">
+                <Award className="h-5 w-5 text-yellow-400" />
+                <CardTitle className="text-white">Top Suppliers</CardTitle>
+              </div>
+              <CardDescription className="text-slate-300">
+                Ranked by emission reduction achievements
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {topSuppliers.map((supplier, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-slate-600 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center justify-center w-8 h-8 bg-blue-600 rounded-full text-white text-sm font-bold">
+                      {supplier.rank}
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">{supplier.name}</p>
+                      <p className="text-slate-400 text-xs">{supplier.emissions}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-green-400 text-sm font-medium">
+                      -{supplier.reduction}
+                    </span>
+                    {supplier.trend === 'up' && <TrendingUp className="h-4 w-4 text-green-400" />}
+                    {supplier.trend === 'down' && <TrendingDown className="h-4 w-4 text-red-400" />}
+                    {supplier.trend === 'stable' && <div className="h-4 w-4 bg-yellow-400 rounded-full" />}
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+          <Card className="bg-slate-700 border-slate-600">
+            <CardHeader>
               <CardTitle className="text-white">Quick Actions</CardTitle>
               <CardDescription className="text-slate-300">
                 Get started with emission tracking
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors">
                 Add New Emission Data
               </button>
-              <button className="w-full bg-slate-600 hover:bg-slate-500 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+              <button className="bg-slate-600 hover:bg-slate-500 text-white font-medium py-3 px-4 rounded-lg transition-colors">
                 Generate Report
               </button>
-              <button className="w-full bg-slate-600 hover:bg-slate-500 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+              <button className="bg-slate-600 hover:bg-slate-500 text-white font-medium py-3 px-4 rounded-lg transition-colors">
                 View Analytics
               </button>
-              <button className="w-full bg-slate-600 hover:bg-slate-500 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+              <button className="bg-slate-600 hover:bg-slate-500 text-white font-medium py-3 px-4 rounded-lg transition-colors">
                 Export Data
               </button>
             </CardContent>

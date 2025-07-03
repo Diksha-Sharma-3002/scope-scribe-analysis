@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import DataInput from "./pages/DataInput";
 import Analysis from "./pages/Analysis";
 import Report from "./pages/Report";
+import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -19,15 +20,30 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/input" element={<DataInput />} />
-            <Route path="/analysis" element={<Analysis />} />
-            <Route path="/report" element={<Report />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Layout>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={
+            <Layout>
+              <Dashboard />
+            </Layout>
+          } />
+          <Route path="/input" element={
+            <Layout>
+              <DataInput />
+            </Layout>
+          } />
+          <Route path="/analysis" element={
+            <Layout>
+              <Analysis />
+            </Layout>
+          } />
+          <Route path="/report" element={
+            <Layout>
+              <Report />
+            </Layout>
+          } />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
