@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
 import { LogIn, Mail, Lock } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -72,9 +72,9 @@ const Login = () => {
           <div className="mt-4 text-center">
             <p className="text-sm text-slate-400">
               Don't have an account?{' '}
-              <a href="#" className="text-blue-400 hover:text-blue-300">
+              <Link to="/signup" className="text-blue-400 hover:text-blue-300">
                 Sign up
-              </a>
+              </Link>
             </p>
           </div>
         </CardContent>

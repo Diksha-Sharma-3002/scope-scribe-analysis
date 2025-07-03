@@ -10,7 +10,9 @@ import DataInput from "./pages/DataInput";
 import Analysis from "./pages/Analysis";
 import Report from "./pages/Report";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
+import Chatbot from "./components/Chatbot";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +24,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
           <Route path="/" element={
             <Layout>
               <Dashboard />
@@ -44,6 +47,7 @@ const App = () => (
           } />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <Chatbot />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
