@@ -6,20 +6,36 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import StepWizard from '@/components/StepWizard';
+import { cn } from '@/lib/utils';
+
+const emissionSchema = z.object({
+  category: z.string().min(1, "Scope 3 category is required"),
+  supplier: z.string().min(3, "Supplier/Source must be at least 3 characters"),
+  activity: z.string().min(1, "Activity description is required"),
+  period: z.string().min(1, "Reporting period is required"),
+  quantity: z.string().refine((val) => {
+    const num = parseFloat(val);
+    return !isNaN(num) && num > 0;
+  }, "Quantity must be a number greater than 0"),
+  unit: z.string().min(1, "Unit is required"),
+  emissionFactor: z.string().refine((val) => {
+    const num = parseFloat(val);
+    return !isNaN(num) && num >= 0;
+  }, "Emission factor must be a number greater than or equal to 0"),
+  description: z.string().optional(),
+});
+
+type EmissionFormData = z.infer<typeof emissionSchema>;
 
 const DataInput = () => {
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    category: '',
-    supplier: '',
-    activity: '',
-    quantity: '',
-    unit: '',
-    emissionFactor: '',
-    description: '',
-    period: '',
-  });
+  const [currentStep, setCurrentStep] = useState(1);
 
   const categories = [
     'Purchased Goods & Services',
@@ -39,36 +55,302 @@ const DataInput = () => {
     'Investments',
   ];
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  const units = ['kg', 'tonnes', 'liters', 'kwh', 'km', 'usd'];
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Calculate emissions
-    const quantity = parseFloat(formData.quantity);
-    const emissionFactor = parseFloat(formData.emissionFactor);
+  const form = useForm<EmissionFormData>({
+    resolver: zodResolver(emissionSchema),
+    defaultValues: {
+      category: '',
+      supplier: '',
+      activity: '',
+      period: '',
+      quantity: '',
+      unit: '',
+      emissionFactor: '',
+      description: '',
+    },
+    mode: 'onBlur',
+  });
+
+  const { handleSubmit, trigger, formState: { errors } } = form;
+
+  const onSubmit = (data: EmissionFormData) => {
+    const quantity = parseFloat(data.quantity);
+    const emissionFactor = parseFloat(data.emissionFactor);
     const totalEmissions = quantity * emissionFactor;
 
-    console.log('Emission data submitted:', { ...formData, totalEmissions });
+    console.log('Emission data submitted:', { ...data, totalEmissions });
     
     toast({
       title: "Data Submitted Successfully",
       description: `Total emissions: ${totalEmissions.toFixed(2)} tCO2e`,
     });
 
-    // Reset form
-    setFormData({
-      category: '',
-      supplier: '',
-      activity: '',
-      quantity: '',
-      unit: '',
-      emissionFactor: '',
-      description: '',
-      period: '',
-    });
+    form.reset();
+    setCurrentStep(1);
+  };
+
+  const handleNext = async () => {
+    let fieldsToValidate: (keyof EmissionFormData)[] = [];
+    
+    switch (currentStep) {
+      case 1:
+        fieldsToValidate = ['category', 'supplier'];
+        break;
+      case 2:
+        fieldsToValidate = ['activity', 'period'];
+        break;
+      case 3:
+        fieldsToValidate = ['quantity', 'unit'];
+        break;
+      case 4:
+        fieldsToValidate = ['emissionFactor'];
+        break;
+    }
+
+    const isValid = await trigger(fieldsToValidate);
+    if (isValid) {
+      setCurrentStep(prev => Math.min(prev + 1, 5));
+    }
+  };
+
+  const handleBack = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 1));
+  };
+
+  const renderStep = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-slate-200">Scope 3 Category</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className={cn(
+                        "bg-slate-600 border-slate-500 text-white",
+                        errors.category && "border-destructive"
+                      )}>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-slate-600 border-slate-500">
+                      {categories.map((category) => (
+                        <SelectItem key={category} value={category} className="text-white hover:bg-slate-500">
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="supplier"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-slate-200">Supplier/Source</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="Enter supplier name"
+                      className={cn(
+                        "bg-slate-600 border-slate-500 text-white placeholder-slate-400",
+                        errors.supplier && "border-destructive"
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-6">
+            <FormField
+              control={form.control}
+              name="activity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-slate-200">Activity Description</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="e.g., Office supplies purchase"
+                      className={cn(
+                        "bg-slate-600 border-slate-500 text-white placeholder-slate-400",
+                        errors.activity && "border-destructive"
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="period"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-slate-200">Reporting Period</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="month"
+                      className={cn(
+                        "bg-slate-600 border-slate-500 text-white",
+                        errors.period && "border-destructive"
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            <FormField
+              control={form.control}
+              name="quantity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-slate-200">Quantity</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="number"
+                      step="0.01"
+                      placeholder="Enter quantity"
+                      className={cn(
+                        "bg-slate-600 border-slate-500 text-white placeholder-slate-400",
+                        errors.quantity && "border-destructive"
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="unit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-slate-200">Unit</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className={cn(
+                        "bg-slate-600 border-slate-500 text-white",
+                        errors.unit && "border-destructive"
+                      )}>
+                        <SelectValue placeholder="Select unit" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-slate-600 border-slate-500">
+                      {units.map((unit) => (
+                        <SelectItem key={unit} value={unit} className="text-white hover:bg-slate-500">
+                          {unit}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-6">
+            <FormField
+              control={form.control}
+              name="emissionFactor"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-slate-200">Emission Factor (tCO2e/unit)</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="number"
+                      step="0.000001"
+                      placeholder="Enter emission factor"
+                      className={cn(
+                        "bg-slate-600 border-slate-500 text-white placeholder-slate-400",
+                        errors.emissionFactor && "border-destructive"
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-slate-200">Additional Notes</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      placeholder="Any additional information about this emission source..."
+                      className="bg-slate-600 border-slate-500 text-white placeholder-slate-400"
+                      rows={3}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        );
+
+      case 5:
+        const formData = form.getValues();
+        const quantity = parseFloat(formData.quantity || '0');
+        const emissionFactor = parseFloat(formData.emissionFactor || '0');
+        const totalEmissions = quantity * emissionFactor;
+
+        return (
+          <div className="space-y-6">
+            <h3 className="text-xl font-semibold text-white mb-4">Review Your Data</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-300">
+              <div><strong>Category:</strong> {formData.category}</div>
+              <div><strong>Supplier:</strong> {formData.supplier}</div>
+              <div><strong>Activity:</strong> {formData.activity}</div>
+              <div><strong>Period:</strong> {formData.period}</div>
+              <div><strong>Quantity:</strong> {formData.quantity} {formData.unit}</div>
+              <div><strong>Emission Factor:</strong> {formData.emissionFactor} tCO2e/unit</div>
+              <div className="md:col-span-2"><strong>Notes:</strong> {formData.description || 'None'}</div>
+              <div className="md:col-span-2 text-lg font-semibold text-primary">
+                <strong>Total Emissions: {totalEmissions.toFixed(2)} tCO2e</strong>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
   };
 
   return (
@@ -83,126 +365,46 @@ const DataInput = () => {
           <CardHeader>
             <CardTitle className="text-white">Add Emission Data</CardTitle>
             <CardDescription className="text-slate-300">
-              Fill in the details for your emission activity
+              Complete the 5-step process to submit your emission data
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="category" className="text-slate-200">Scope 3 Category</Label>
-                  <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
-                    <SelectTrigger className="bg-slate-600 border-slate-500 text-white">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-600 border-slate-500">
-                      {categories.map((category) => (
-                        <SelectItem key={category} value={category} className="text-white hover:bg-slate-500">
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            <StepWizard currentStep={currentStep} />
+            
+            <Form {...form}>
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+                {renderStep()}
 
-                <div className="space-y-2">
-                  <Label htmlFor="supplier" className="text-slate-200">Supplier/Source</Label>
-                  <Input
-                    id="supplier"
-                    value={formData.supplier}
-                    onChange={(e) => handleInputChange('supplier', e.target.value)}
-                    placeholder="Enter supplier name"
-                    className="bg-slate-600 border-slate-500 text-white placeholder-slate-400"
-                  />
-                </div>
+                <div className="flex justify-between pt-6">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleBack}
+                    disabled={currentStep === 1}
+                    className="border-slate-500 text-slate-200 hover:bg-slate-600"
+                  >
+                    Back
+                  </Button>
 
-                <div className="space-y-2">
-                  <Label htmlFor="activity" className="text-slate-200">Activity Description</Label>
-                  <Input
-                    id="activity"
-                    value={formData.activity}
-                    onChange={(e) => handleInputChange('activity', e.target.value)}
-                    placeholder="e.g., Office supplies purchase"
-                    className="bg-slate-600 border-slate-500 text-white placeholder-slate-400"
-                  />
+                  {currentStep < 5 ? (
+                    <Button
+                      type="button"
+                      onClick={handleNext}
+                      className="bg-primary hover:bg-primary/90"
+                    >
+                      Next
+                    </Button>
+                  ) : (
+                    <Button
+                      type="submit"
+                      className="bg-primary hover:bg-primary/90"
+                    >
+                      Submit Data
+                    </Button>
+                  )}
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="period" className="text-slate-200">Reporting Period</Label>
-                  <Input
-                    id="period"
-                    type="month"
-                    value={formData.period}
-                    onChange={(e) => handleInputChange('period', e.target.value)}
-                    className="bg-slate-600 border-slate-500 text-white"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="quantity" className="text-slate-200">Quantity</Label>
-                  <Input
-                    id="quantity"
-                    type="number"
-                    step="0.01"
-                    value={formData.quantity}
-                    onChange={(e) => handleInputChange('quantity', e.target.value)}
-                    placeholder="Enter quantity"
-                    className="bg-slate-600 border-slate-500 text-white placeholder-slate-400"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="unit" className="text-slate-200">Unit</Label>
-                  <Select value={formData.unit} onValueChange={(value) => handleInputChange('unit', value)}>
-                    <SelectTrigger className="bg-slate-600 border-slate-500 text-white">
-                      <SelectValue placeholder="Select unit" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-600 border-slate-500">
-                      <SelectItem value="kg" className="text-white hover:bg-slate-500">kg</SelectItem>
-                      <SelectItem value="tonnes" className="text-white hover:bg-slate-500">tonnes</SelectItem>
-                      <SelectItem value="liters" className="text-white hover:bg-slate-500">liters</SelectItem>
-                      <SelectItem value="kwh" className="text-white hover:bg-slate-500">kWh</SelectItem>
-                      <SelectItem value="km" className="text-white hover:bg-slate-500">km</SelectItem>
-                      <SelectItem value="usd" className="text-white hover:bg-slate-500">USD</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="emissionFactor" className="text-slate-200">Emission Factor (tCO2e/unit)</Label>
-                  <Input
-                    id="emissionFactor"
-                    type="number"
-                    step="0.000001"
-                    value={formData.emissionFactor}
-                    onChange={(e) => handleInputChange('emissionFactor', e.target.value)}
-                    placeholder="Enter emission factor"
-                    className="bg-slate-600 border-slate-500 text-white placeholder-slate-400"
-                  />
-                </div>
-
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="description" className="text-slate-200">Additional Notes</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
-                    placeholder="Any additional information about this emission source..."
-                    className="bg-slate-600 border-slate-500 text-white placeholder-slate-400"
-                    rows={3}
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
-                  Submit Data
-                </Button>
-                <Button type="button" variant="outline" className="border-slate-500 text-slate-200 hover:bg-slate-600">
-                  Save as Draft
-                </Button>
-              </div>
-            </form>
+              </form>
+            </Form>
           </CardContent>
         </Card>
       </div>
