@@ -35,7 +35,7 @@ Sparkscope is a single-page web application designed to help organizations track
 
 ```bash
 # Clone the repository
-git clone https://github.com/Diksha-Sharma-3002/Sparkscope.git
+git clone <URL>
 
 # Navigate into the project directory
 cd Sparkscope
