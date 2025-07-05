@@ -1,73 +1,47 @@
-# Welcome to your Lovable project
+# Sparkscope – Scope 3 Emissions Tracker
 
-## Project info
+Sparkscope is a single-page web application designed to help organizations track and analyze their Scope 3 greenhouse gas emissions. Built with a modern tech stack, it supports both manual data entry and CSV-based batch uploads, offering real-time insights through interactive dashboards.
 
-**URL**: https://lovable.dev/projects/e8f2ec52-6d38-4b27-8efb-2443faff69c0
+---
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+- **Dual Data Input Modes**: Supports manual entry and CSV import for flexible data ingestion.
+- **Automated Emissions Estimation**: Utilizes LangChain agents to parse uploaded data and estimate emissions.
+- **Interactive Dashboards**: Visualizes emissions data using responsive charts and graphs.
+- **Modern UI/UX**: Built with Tailwind CSS and shadcn/ui for a clean, responsive interface.
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/e8f2ec52-6d38-4b27-8efb-2443faff69c0) and start prompting.
+## 🛠Tech Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+| Category       | Tools & Frameworks                          |
+|----------------|---------------------------------------------|
+| Frontend       | React, TypeScript, Vite                     |
+| Styling        | Tailwind CSS, shadcn/ui                     |
+| Automation     | LangChain                                   |
+| Tooling        | Git, GitHub, Postman                        |
 
-**Use your preferred IDE**
+---
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Getting Started
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Prerequisites
 
-Follow these steps:
+- Node.js (v18+ recommended)
+- npm or yarn
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Installation
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+```bash
+# Clone the repository
+git clone https://github.com/Diksha-Sharma-3002/Sparkscope.git
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Navigate into the project directory
+cd Sparkscope
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Install dependencies
+npm install
+
+# Start the development server
 npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/e8f2ec52-6d38-4b27-8efb-2443faff69c0) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
